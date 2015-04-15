@@ -1,6 +1,13 @@
-# Cloud Foundry Copy Env CLI Plugin
+# Cloud Foundry CLI Copy Env Plugin
 
-Cloud Foundry plugin extension to export live application VCAP_SERVICES environment variable into the local developer machine.
+Cloud Foundry CLI plugin to export application VCAP_SERVICES onto the local machine.
+
+Applications running on Cloud Foundry rely on the VCAP_SERVICES environment variable to provide service credentials. 
+
+When running applications locally for development and testing, it's useful to have the same VCAP_SERVICES values available in the local environment to simulate running on the host platform.
+
+
+This plugin will export the remote application environment variables, available using cf env, into a format that makes it simple to expose those same values locally. 
 
 ## Install
 
