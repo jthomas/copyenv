@@ -9,6 +9,8 @@ When running applications locally for development and testing, it's useful to ha
 
 This plugin will export the remote application environment variables, available using cf env, into a format that makes it simple to expose those same values locally. 
 
+![copy env plugin](https://dl.dropboxusercontent.com/u/10404736/copyenv.gif)
+
 ## Install
 
 ```
