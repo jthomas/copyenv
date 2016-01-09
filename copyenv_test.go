@@ -52,5 +52,10 @@ var _ = Describe("Cloud Foundry Copyenv Command", func() {
 			})
 			Ω(output[0]).Should(Equal("export VCAP_SERVICES='testing';"))
 		})
+
+		It("Silently uninstalls", func() {
+			callCopyEnvCommandPlugin.Run(fakeCliConnection, []string{"CLI-MESSAGE-UNINSTALL"})
+			Ω(fakeCliConnection.CliCommandWithoutTerminalOutputCallCount()).Should(Equal(0))
+		})
 	})
 })

@@ -69,6 +69,9 @@ func (c *CopyEnv) ExportCredsAsShellVar(creds string) {
 }
 
 func (c *CopyEnv) Run(cliConnection plugin.CliConnection, args []string) {
+	if len(args) > 0 && args[0] == "CLI-MESSAGE-UNINSTALL" {
+		return
+	}
 	app_name, err := c.ExtractAppName(args)
 	fatalIf(err)
 
