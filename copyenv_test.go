@@ -37,18 +37,18 @@ var _ = Describe("Cloud Foundry Copyenv Command", func() {
 		})
 
 		It("Return Service Credentials From Appplication Environment", func() {
-			_, err := callCopyEnvCommandPlugin.ExtractServiceCredentialsJSON([]string{""})
+			_, err := callCopyEnvCommandPlugin.ExtractCredentialsJSON("VCAP_SERVICES", []string{""})
 			Ω(err).Should(MatchError("missing service credentials for application"))
 
 			service_creds := []string{"{\"VCAP_SERVICES\":{\"service\": [ { \"credentials\": {} } ]}}"}
-			b, err := callCopyEnvCommandPlugin.ExtractServiceCredentialsJSON(service_creds)
+			b, err := callCopyEnvCommandPlugin.ExtractCredentialsJSON("VCAP_SERVICES", service_creds)
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(string(b[:])).Should(Equal("{\"service\":[{\"credentials\":{}}]}"))
 		})
 
 		It("Print Service Credentials As Shell Variable", func() {
 			output := io_helpers.CaptureOutput(func() {
-				callCopyEnvCommandPlugin.ExportCredsAsShellVar("testing")
+				callCopyEnvCommandPlugin.ExportCredsAsShellVar("VCAP_SERVICES", "testing")
 			})
 			Ω(output[0]).Should(Equal("export VCAP_SERVICES='testing';"))
 		})

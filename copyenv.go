@@ -39,12 +39,12 @@ func (c *CopyEnv) RetrieveAppNameEnv(cliConnection plugin.CliConnection, app_nam
 	return output, err
 }
 
-func (c *CopyEnv) ExtractServiceCredentialsJSON(output []string) ([]byte, error) {
+func (c *CopyEnv) ExtractCredentialsJSON(credKey string, output []string) ([]byte, error) {
 	err := errors.New("missing service credentials for application")
 	var b []byte
 
 	for _, val := range output {
-		if strings.Contains(val, "VCAP_SERVICES") {
+		if strings.Contains(val, credKey) {
 			var f interface{}
 			err = json.Unmarshal([]byte(val), &f)
 			if err != nil {
@@ -52,7 +52,7 @@ func (c *CopyEnv) ExtractServiceCredentialsJSON(output []string) ([]byte, error)
 			}
 
 			m := f.(map[string]interface{})
-			b, err = json.Marshal(m["VCAP_SERVICES"])
+			b, err = json.Marshal(m[credKey])
 			if err != nil {
 				return nil, err
 			}
@@ -63,8 +63,8 @@ func (c *CopyEnv) ExtractServiceCredentialsJSON(output []string) ([]byte, error)
 	return b, err
 }
 
-func (c *CopyEnv) ExportCredsAsShellVar(creds string) {
-	vcap_services := "export VCAP_SERVICES='" + creds + "';"
+func (c *CopyEnv) ExportCredsAsShellVar(credKey string, creds string) {
+	vcap_services := fmt.Sprintf("export %s='%s';", credKey, creds)
 	fmt.Println(vcap_services)
 }
 
@@ -78,10 +78,10 @@ func (c *CopyEnv) Run(cliConnection plugin.CliConnection, args []string) {
 	app_env, err := c.RetrieveAppNameEnv(cliConnection, app_name)
 	fatalIf(err)
 
-	creds, err := c.ExtractServiceCredentialsJSON(app_env)
+	services_creds, err := c.ExtractCredentialsJSON("VCAP_SERVICES", app_env)
 	fatalIf(err)
 
-	c.ExportCredsAsShellVar(string(creds[:]))
+	c.ExportCredsAsShellVar("VCAP_SERVICES", string(services_creds[:]))
 }
 
 func (c *CopyEnv) GetMetadata() plugin.PluginMetadata {
