@@ -39,6 +39,15 @@ $ cf copyenv APP_NAME > temp.json
 $ source temp.json
 ```
 
+You can obtain additional information with flags.
+```
+$ cf copyenv APP_NAME -all
+
+export VCAP_SERVICES='...'
+export VCAP_APPLICATION='...'
+```
+
+
 ## Uninstall
 
 ```

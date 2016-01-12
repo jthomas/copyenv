@@ -57,5 +57,26 @@ var _ = Describe("Cloud Foundry Copyenv Command", func() {
 			callCopyEnvCommandPlugin.Run(fakeCliConnection, []string{"CLI-MESSAGE-UNINSTALL"})
 			Ω(fakeCliConnection.CliCommandWithoutTerminalOutputCallCount()).Should(Equal(0))
 		})
+
+		Context("when called with --all", func() {
+			It("Extracts VCAP_APPLICATION and VCAP_SERVICE", func() {
+				services := "{\"VCAP_SERVICES\":[\"services\"]}"
+				application := "{\"VCAP_APPLICATION\":[\"application\"]}"
+				fakeCliConnection.CliCommandWithoutTerminalOutputReturns([]string{
+					services, application, "OTHER"}, nil)
+
+				output := io_helpers.CaptureOutput(func() {
+					callCopyEnvCommandPlugin.Run(fakeCliConnection, []string{"copyenv", "APP_NAME", "--all"})
+				})
+
+				Ω(output).Should(ContainElement(
+					"export VCAP_APPLICATION='[\"application\"]';",
+				))
+
+				Ω(output).Should(ContainElement(
+					"export VCAP_SERVICES='[\"services\"]';",
+				))
+			})
+		})
 	})
 })

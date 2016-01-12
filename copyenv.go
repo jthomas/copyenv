@@ -63,9 +63,15 @@ func (c *CopyEnv) ExtractCredentialsJSON(credKey string, output []string) ([]byt
 	return b, err
 }
 
-func (c *CopyEnv) ExportCredsAsShellVar(credKey string, creds string) {
-	vcap_services := fmt.Sprintf("export %s='%s';", credKey, creds)
+func (c *CopyEnv) ExportCredsAsShellVar(cred_key string, creds string) {
+	vcap_services := fmt.Sprintf("export %s='%s';", cred_key, creds)
 	fmt.Println(vcap_services)
+}
+
+func (c *CopyEnv) ExtractAndExportCredentials(cred_key string, app_env []string) {
+	creds, err := c.ExtractCredentialsJSON(cred_key, app_env)
+	fatalIf(err)
+	c.ExportCredsAsShellVar(cred_key, string(creds[:]))
 }
 
 func (c *CopyEnv) Run(cliConnection plugin.CliConnection, args []string) {
@@ -78,10 +84,12 @@ func (c *CopyEnv) Run(cliConnection plugin.CliConnection, args []string) {
 	app_env, err := c.RetrieveAppNameEnv(cliConnection, app_name)
 	fatalIf(err)
 
-	services_creds, err := c.ExtractCredentialsJSON("VCAP_SERVICES", app_env)
-	fatalIf(err)
+	if len(args) > 2 && args[2] == "--all" {
+		c.ExtractAndExportCredentials("VCAP_APPLICATION", app_env)
+		fmt.Println("")
+	}
 
-	c.ExportCredsAsShellVar("VCAP_SERVICES", string(services_creds[:]))
+	c.ExtractAndExportCredentials("VCAP_SERVICES", app_env)
 }
 
 func (c *CopyEnv) GetMetadata() plugin.PluginMetadata {
@@ -89,7 +97,7 @@ func (c *CopyEnv) GetMetadata() plugin.PluginMetadata {
 		Name: "copyenv",
 		Version: plugin.VersionType{
 			Major: 1,
-			Minor: 0,
+			Minor: 1,
 			Build: 0,
 		},
 		Commands: []plugin.Command{
@@ -97,7 +105,10 @@ func (c *CopyEnv) GetMetadata() plugin.PluginMetadata {
 				Name:     "copyenv",
 				HelpText: "Export application VCAP_SERVICES to local environment variable.",
 				UsageDetails: plugin.Usage{
-					Usage: "copyenv APP_NAME - Retrieve and export remote application VCAP_SERVICES to local developer environment.",
+					Usage: "copyenv APP_NAME [--all] - Retrieve and export remote application VCAP_SERVICES to local developer environment.",
+					Options: map[string]string{
+						"all": "Retrieve both VCAP_SERVICES and VCAP_APPLICATION from remote application",
+					},
 				},
 			},
 		},
