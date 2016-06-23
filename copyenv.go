@@ -31,9 +31,8 @@ func (c *CopyEnv) RetrieveAppNameEnv(cliConnection plugin.CliConnection, app_nam
 	output, err := cliConnection.CliCommandWithoutTerminalOutput("env", app_name)
 
 	if err != nil {
-		for _, val := range output {
-			fmt.Println(val)
-		}
+		msg := fmt.Sprintf("Failed to retrieve enviroment for \"%s\", is the app name correct?", app_name)
+		err = errors.New(msg)
 	}
 
 	return output, err

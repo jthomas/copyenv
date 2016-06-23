@@ -2,7 +2,8 @@ package main_test
 
 import (
 	. "."
-	"github.com/cloudfoundry/cli/plugin/fakes"
+	"errors"
+	"github.com/cloudfoundry/cli/plugin/pluginfakes"
 	io_helpers "github.com/cloudfoundry/cli/testhelpers/io"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -10,11 +11,11 @@ import (
 
 var _ = Describe("Cloud Foundry Copyenv Command", func() {
 	Describe(".Run", func() {
-		var fakeCliConnection *fakes.FakeCliConnection
+		var fakeCliConnection *pluginfakes.FakeCliConnection
 		var callCopyEnvCommandPlugin *CopyEnv
 
 		BeforeEach(func() {
-			fakeCliConnection = &fakes.FakeCliConnection{}
+			fakeCliConnection = &pluginfakes.FakeCliConnection{}
 			callCopyEnvCommandPlugin = &CopyEnv{}
 		})
 
@@ -51,6 +52,13 @@ var _ = Describe("Cloud Foundry Copyenv Command", func() {
 				callCopyEnvCommandPlugin.ExportCredsAsShellVar("VCAP_SERVICES", "testing")
 			})
 			Ω(output[0]).Should(Equal("export VCAP_SERVICES='testing';"))
+		})
+
+		It("Return Error When App Name Is Missing", func() {
+			fakeCliConnection.CliCommandWithoutTerminalOutputReturns([]string{}, errors.New(""))
+			output, err := callCopyEnvCommandPlugin.RetrieveAppNameEnv(fakeCliConnection, "missing_app")
+			Ω(output).Should(Equal([]string{}))
+			Ω(err).ShouldNot(Equal(nil))
 		})
 
 		It("Silently uninstalls", func() {
