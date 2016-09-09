@@ -28,34 +28,43 @@ func (c *CopyEnv) ExtractAppName(args []string) (string, error) {
 }
 
 func (c *CopyEnv) RetrieveAppNameEnv(cliConnection plugin.CliConnection, app_name string) ([]string, error) {
-	output, err := cliConnection.CliCommandWithoutTerminalOutput("env", app_name)
+
+	app, err := cliConnection.GetApp(app_name)
 
 	if err != nil {
 		msg := fmt.Sprintf("Failed to retrieve enviroment for \"%s\", is the app name correct?", app_name)
 		err = errors.New(msg)
-	}
+	} else {
+		url := fmt.Sprintf("/v2/apps/%s/env", app.Guid)
+		output, err := cliConnection.CliCommandWithoutTerminalOutput("curl", url)
 
-	return output, err
+		if err != nil {
+			msg := fmt.Sprintf("Failed to retrieve enviroment for \"%s\", is the app name correct?", app_name)
+			err = errors.New(msg)
+		}
+
+		return output, err
+	}
+	return nil, err
 }
 
-func (c *CopyEnv) ExtractCredentialsJSON(credKey string, output []string) ([]byte, error) {
+func (c *CopyEnv) ExtractCredentialsJSON(envParent string, credKey string, output []string) ([]byte, error) {
 	err := errors.New("missing service credentials for application")
 	var b []byte
 
-	for _, val := range output {
-		if strings.Contains(val, credKey) {
-			var f interface{}
-			err = json.Unmarshal([]byte(val), &f)
-			if err != nil {
-				return nil, err
-			}
+	val := strings.Join(output, "")
+	if strings.Contains(val, credKey) {
+		var f interface{}
+		err = json.Unmarshal([]byte(val), &f)
+		if err != nil {
+			return nil, err
+		}
 
-			m := f.(map[string]interface{})
-			b, err = json.Marshal(m[credKey])
-			if err != nil {
-				return nil, err
-			}
-
+		envJson := f.(map[string]interface{})
+		envParentJson := envJson[envParent].(map[string]interface{})
+		b, err = json.Marshal(envParentJson[credKey])
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -67,8 +76,8 @@ func (c *CopyEnv) ExportCredsAsShellVar(cred_key string, creds string) {
 	fmt.Println(vcap_services)
 }
 
-func (c *CopyEnv) ExtractAndExportCredentials(cred_key string, app_env []string) {
-	creds, err := c.ExtractCredentialsJSON(cred_key, app_env)
+func (c *CopyEnv) ExtractAndExportCredentials(env_parent string, cred_key string, app_env []string) {
+	creds, err := c.ExtractCredentialsJSON(env_parent, cred_key, app_env)
 	fatalIf(err)
 	c.ExportCredsAsShellVar(cred_key, string(creds[:]))
 }
@@ -84,11 +93,11 @@ func (c *CopyEnv) Run(cliConnection plugin.CliConnection, args []string) {
 	fatalIf(err)
 
 	if len(args) > 2 && args[2] == "--all" {
-		c.ExtractAndExportCredentials("VCAP_APPLICATION", app_env)
+		c.ExtractAndExportCredentials("application_env_json", "VCAP_APPLICATION", app_env)
 		fmt.Println("")
 	}
 
-	c.ExtractAndExportCredentials("VCAP_SERVICES", app_env)
+	c.ExtractAndExportCredentials("system_env_json", "VCAP_SERVICES", app_env)
 }
 
 func (c *CopyEnv) GetMetadata() plugin.PluginMetadata {

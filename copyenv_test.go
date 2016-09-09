@@ -3,6 +3,7 @@ package main_test
 import (
 	. "."
 	"errors"
+	"github.com/cloudfoundry/cli/plugin/models"
 	"github.com/cloudfoundry/cli/plugin/pluginfakes"
 	io_helpers "github.com/cloudfoundry/cli/testhelpers/io"
 	. "github.com/onsi/ginkgo"
@@ -30,19 +31,20 @@ var _ = Describe("Cloud Foundry Copyenv Command", func() {
 
 		It("Retrieve Application Environment Variables From Name", func() {
 			fakeCliConnection.CliCommandWithoutTerminalOutputReturns([]string{"SOME", "OUTPUT", "COMMAND"}, nil)
+			fakeCliConnection.GetAppReturns(plugin_models.GetAppModel{Guid: "testing"}, nil)
 			output, err := callCopyEnvCommandPlugin.RetrieveAppNameEnv(fakeCliConnection, "APP_NAME")
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(fakeCliConnection.CliCommandWithoutTerminalOutputCallCount()).Should(Equal(1))
-			Ω(fakeCliConnection.CliCommandWithoutTerminalOutputArgsForCall(0)).Should(Equal([]string{"env", "APP_NAME"}))
+			Ω(fakeCliConnection.CliCommandWithoutTerminalOutputArgsForCall(0)).Should(Equal([]string{"curl", "/v2/apps/testing/env"}))
 			Ω(output).Should(Equal([]string{"SOME", "OUTPUT", "COMMAND"}))
 		})
 
 		It("Return Service Credentials From Appplication Environment", func() {
-			_, err := callCopyEnvCommandPlugin.ExtractCredentialsJSON("VCAP_SERVICES", []string{""})
+			_, err := callCopyEnvCommandPlugin.ExtractCredentialsJSON("system_env_json", "VCAP_SERVICES", []string{""})
 			Ω(err).Should(MatchError("missing service credentials for application"))
 
-			service_creds := []string{"{\"VCAP_SERVICES\":{\"service\": [ { \"credentials\": {} } ]}}"}
-			b, err := callCopyEnvCommandPlugin.ExtractCredentialsJSON("VCAP_SERVICES", service_creds)
+			service_creds := []string{"{\"system_env_json\": {\"VCAP_SERVICES\":{\"service\": [ { \"credentials\": {} } ]}}}"}
+			b, err := callCopyEnvCommandPlugin.ExtractCredentialsJSON("system_env_json", "VCAP_SERVICES", service_creds)
 			Ω(err).ShouldNot(HaveOccurred())
 			Ω(string(b[:])).Should(Equal("{\"service\":[{\"credentials\":{}}]}"))
 		})
