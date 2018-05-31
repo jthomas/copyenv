@@ -7,19 +7,22 @@ import (
 	"os"
 	"strings"
 
-	"github.com/cloudfoundry/cli/plugin"
+	"code.cloudfoundry.org/cli/plugin"
 )
 
+// CopyEnv plugin
 type CopyEnv struct{}
 
+// fatalIf will print the error and exit when err is not nil
 func fatalIf(err error) {
 	if err != nil {
-		fmt.Fprintln(os.Stdout, "error: ", err)
+		fmt.Fprintln(os.Stderr, "error: ", err)
 		os.Exit(1)
 	}
 }
 
-func (c *CopyEnv) ExtractAppName(args []string) (string, error) {
+// extractAppName return the application name parameter from the command line
+func (c *CopyEnv) extractAppName(args []string) (string, error) {
 	if len(args) < 2 {
 		return "", errors.New("missing application name")
 	}
@@ -27,19 +30,19 @@ func (c *CopyEnv) ExtractAppName(args []string) (string, error) {
 	return args[1], nil
 }
 
-func (c *CopyEnv) RetrieveAppNameEnv(cliConnection plugin.CliConnection, app_name string) ([]string, error) {
+func (c *CopyEnv) retrieveAppNameEnv(cliConnection plugin.CliConnection, appName string) ([]string, error) {
 
-	app, err := cliConnection.GetApp(app_name)
+	app, err := cliConnection.GetApp(appName)
 
 	if err != nil {
-		msg := fmt.Sprintf("Failed to retrieve enviroment for \"%s\", is the app name correct?", app_name)
+		msg := fmt.Sprintf("Failed to retrieve enviroment for \"%s\", is the app name correct?", appName)
 		err = errors.New(msg)
 	} else {
 		url := fmt.Sprintf("/v2/apps/%s/env", app.Guid)
 		output, err := cliConnection.CliCommandWithoutTerminalOutput("curl", url)
 
 		if err != nil {
-			msg := fmt.Sprintf("Failed to retrieve enviroment for \"%s\", is the app name correct?", app_name)
+			msg := fmt.Sprintf("Failed to retrieve enviroment for \"%s\", is the app name correct?", appName)
 			err = errors.New(msg)
 		}
 
@@ -48,7 +51,7 @@ func (c *CopyEnv) RetrieveAppNameEnv(cliConnection plugin.CliConnection, app_nam
 	return nil, err
 }
 
-func (c *CopyEnv) ExtractCredentialsJSON(envParent string, credKey string, output []string) ([]byte, error) {
+func (c *CopyEnv) extractCredentialsJSON(envParent string, credKey string, output []string) ([]byte, error) {
 	err := errors.New("missing service credentials for application")
 	var b []byte
 
@@ -60,9 +63,9 @@ func (c *CopyEnv) ExtractCredentialsJSON(envParent string, credKey string, outpu
 			return nil, err
 		}
 
-		envJson := f.(map[string]interface{})
-		envParentJson := envJson[envParent].(map[string]interface{})
-		b, err = json.Marshal(envParentJson[credKey])
+		envJSON := f.(map[string]interface{})
+		envParentJSON := envJSON[envParent].(map[string]interface{})
+		b, err = json.Marshal(envParentJSON[credKey])
 		if err != nil {
 			return nil, err
 		}
@@ -71,42 +74,44 @@ func (c *CopyEnv) ExtractCredentialsJSON(envParent string, credKey string, outpu
 	return b, err
 }
 
-func (c *CopyEnv) ExportCredsAsShellVar(cred_key string, creds string) {
-	vcap_services := fmt.Sprintf("export %s='%s';", cred_key, creds)
-	fmt.Println(vcap_services)
+func (c *CopyEnv) exportCredsAsShellVar(credKey string, creds string) {
+	vcapServices := fmt.Sprintf("export %s='%s';", credKey, creds)
+	fmt.Println(vcapServices)
 }
 
-func (c *CopyEnv) ExtractAndExportCredentials(env_parent string, cred_key string, app_env []string) {
-	creds, err := c.ExtractCredentialsJSON(env_parent, cred_key, app_env)
+func (c *CopyEnv) extractAndExportCredentials(envParent string, credKey string, appEnv []string) {
+	creds, err := c.extractCredentialsJSON(envParent, credKey, appEnv)
 	fatalIf(err)
-	c.ExportCredsAsShellVar(cred_key, string(creds[:]))
+	c.exportCredsAsShellVar(credKey, string(creds[:]))
 }
 
+// Run plugin start
 func (c *CopyEnv) Run(cliConnection plugin.CliConnection, args []string) {
 	if len(args) > 0 && args[0] == "CLI-MESSAGE-UNINSTALL" {
 		return
 	}
-	app_name, err := c.ExtractAppName(args)
+
+	appName, err := c.extractAppName(args)
 	fatalIf(err)
 
-	app_env, err := c.RetrieveAppNameEnv(cliConnection, app_name)
+	appEnv, err := c.retrieveAppNameEnv(cliConnection, appName)
 	fatalIf(err)
 
 	if len(args) > 2 && args[2] == "--all" {
-		c.ExtractAndExportCredentials("application_env_json", "VCAP_APPLICATION", app_env)
+		c.extractAndExportCredentials("application_env_json", "VCAP_APPLICATION", appEnv)
 		fmt.Println("")
 	}
-
-	c.ExtractAndExportCredentials("system_env_json", "VCAP_SERVICES", app_env)
+	c.extractAndExportCredentials("system_env_json", "VCAP_SERVICES", appEnv)
 }
 
+// GetMetadata returns plugin metadata
 func (c *CopyEnv) GetMetadata() plugin.PluginMetadata {
 	return plugin.PluginMetadata{
 		Name: "copyenv",
 		Version: plugin.VersionType{
 			Major: 1,
 			Minor: 1,
-			Build: 0,
+			Build: 1,
 		},
 		Commands: []plugin.Command{
 			plugin.Command{
