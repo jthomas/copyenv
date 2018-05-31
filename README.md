@@ -35,7 +35,7 @@ $ eval `cf copyenv APP_NAME`
 
 Using command substitution: 
 ```
-$ $(cf copyenv APP_NAME)` 
+$ $(cf copyenv APP_NAME)
 ```
 
 Using a temporary file:
