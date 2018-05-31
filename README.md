@@ -33,6 +33,11 @@ Using eval:
 $ eval `cf copyenv APP_NAME` 
 ```
 
+Using command substitution: 
+```
+$ $(cf copyenv APP_NAME)` 
+```
+
 Using a temporary file:
 ```
 $ cf copyenv APP_NAME > temp.json
