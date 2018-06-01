@@ -31,11 +31,6 @@ Using eval:
 $ eval `cf copyenv APP_NAME` 
 ```
 
-Using command substitution to export VCAP_SERVICES and VCAP_APPLICATION:
-```
-$ $(cf copyenv APP_NAME --all)
-```
-
 Using a temporary file:
 ```
 $ cf copyenv APP_NAME > temp.json
