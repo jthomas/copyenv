@@ -1,15 +1,12 @@
 # Cloud Foundry CLI Copy Env Plugin
 
-Cloud Foundry CLI plugin to export application VCAP_SERVICES onto the local machine.
+Cloud Foundry CLI plugin to export application VCAP_SERVICES and VCAP_APPLICATION onto the local machine.
 
-Applications running on Cloud Foundry rely on the VCAP_SERVICES environment variable to provide service credentials. 
+Applications running on Cloud Foundry rely on the VCAP_SERVICES environment variable to provide service credentials. Application specific configuration environment is provided in VCAP_APPLICATION.
 
 When running applications locally for development and testing, it's useful to have the same VCAP_SERVICES values available in the local environment to simulate running on the host platform.
 
-
-This plugin will export the remote application environment variables, available using cf env, into a format that makes it simple to expose those same values locally. 
-
-![copy env plugin](https://dl.dropboxusercontent.com/u/10404736/copyenv.gif)
+This plugin will export the remote application environment variables, available using cf env, into a format that makes it simple to expose those same values locally. This plugin will only export VCAP_SERVICES by default. To include VCAP_APPLICATION as well use the --all option.
 
 ## Install
 
@@ -25,6 +22,7 @@ $ cf copyenv APP_NAME
 
 export VCAP_SERVICES='...'
 ```
+
 The plugin output needs to be evaluated in your shell to set up the
 local environment variables.
 
@@ -33,9 +31,9 @@ Using eval:
 $ eval `cf copyenv APP_NAME` 
 ```
 
-Using command substitution: 
+Using command substitution to export VCAP_SERVICES and VCAP_APPLICATION:
 ```
-$ $(cf copyenv APP_NAME)
+$ $(cf copyenv APP_NAME --all)
 ```
 
 Using a temporary file:
