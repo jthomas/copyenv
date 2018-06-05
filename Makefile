@@ -5,11 +5,14 @@ GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
 GOENV=$(GOCMD) env
+sed=sed
 BUILD_FOLDER=bin
 BINARY_NAME=copyenv
 
-CURARCH=$(shell $(GOENV) | grep GOHOSTARCH | cut -d "=" -f2 | tr -d '"')
-CUROS=$(shell $(GOENV) | grep GOHOSTOS | cut -d "=" -f2 | tr -d '"')
+CURARCH=$(shell $(GOENV) | $(sed) -n 's@GOHOSTARCH="\([^"]*\).*@\1@p')
+CUROS=$(shell $(GOENV) |  $(sed) -n 's@GOHOSTOS="\([^"]*\).*@\1@p')
+ARCHWIDTH=$(shell echo $(CURARCH) | $(sed) s'@.*\(..\)@\1@')
+
 PLATFORMS := linux/amd64/linux64 linux/386/linux32 windows/amd64/win64 windows/386/win32 darwin/amd64/osx
 
 temp = $(subst /, ,$@)
@@ -30,12 +33,18 @@ test:
 clean:
 	$(GOCLEAN)
 
-# install: $(PLATFORMS)
-# 	ifeq ($(os),$(CUROS))
-# 		ifeq ($(arch),$(CURARCH))
-# 		 cf install-plugin -f bin/$(BINARY_NAME).'$(ext)'
-# 		endif
-# 	endif
+# install: release
+# ifeq ($(CUROS),darwin)
+# 	INSTALL_TARGET=bin/$(BINARY_NAME).osx
+# endif
+# ifeq ($(CUROS),linux)
+# 	INSTALL_TARGET=bin/$(BINARY_NAME).linux$(ARCHWIDTH)
+# endif
+# ifeq ($(CUROS),windows)
+# 	INSTALL_TARGET=bin/$(BINARY_NAME).win$(ARCHWIDTH)
+# endif
+# 	cf install-plugin -f '$(INSTALL_TARGET)'
+
 deps:
 	$(GOGET) ./...
 
