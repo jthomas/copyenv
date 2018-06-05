@@ -33,17 +33,16 @@ test:
 clean:
 	$(GOCLEAN)
 
-# install: release
-# ifeq ($(CUROS),darwin)
-# 	INSTALL_TARGET=bin/$(BINARY_NAME).osx
-# endif
-# ifeq ($(CUROS),linux)
-# 	INSTALL_TARGET=bin/$(BINARY_NAME).linux$(ARCHWIDTH)
-# endif
-# ifeq ($(CUROS),windows)
-# 	INSTALL_TARGET=bin/$(BINARY_NAME).win$(ARCHWIDTH)
-# endif
-# 	cf install-plugin -f '$(INSTALL_TARGET)'
+install: release
+ifeq ($(CUROS),darwin)
+	cf install-plugin -f bin/$(BINARY_NAME).osx
+endif
+ifeq ($(CUROS),linux)
+	cf install-plugin -f bin/$(BINARY_NAME).linux$(ARCHWIDTH)
+endif
+ifeq ($(CUROS),windows)
+	cf install-plugin -f bin/$(BINARY_NAME).win$(ARCHWIDTH)
+endif
 
 deps:
 	$(GOGET) ./...
