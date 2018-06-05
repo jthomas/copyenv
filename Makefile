@@ -33,7 +33,7 @@ test:
 clean:
 	$(GOCLEAN)
 
-install: release
+install-plugin: release
 ifeq ($(CUROS),darwin)
 	cf install-plugin -f bin/$(BINARY_NAME).osx
 endif
@@ -47,4 +47,4 @@ endif
 deps:
 	$(GOGET) ./...
 
-.PHONY: deps install clean test $(PLATFORMS)
+.PHONY: deps clean test install-plugin $(PLATFORMS)
