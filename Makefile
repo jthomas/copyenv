@@ -20,12 +20,13 @@ os = $(word 1, $(temp))
 arch = $(word 2, $(temp))
 ext = $(word 3, $(temp))
 
+all: deps test build release
+
 release: $(PLATFORMS)
 
 $(PLATFORMS):
 	GOOS=$(os) GOARCH=$(arch) go build -o bin/$(BINARY_NAME).'$(ext)'
 
-all: test build
 build:
 
 test: 
@@ -46,5 +47,7 @@ endif
 
 deps:
 	$(GOGET) ./...
+
+
 
 .PHONY: deps clean test install-plugin $(PLATFORMS)
