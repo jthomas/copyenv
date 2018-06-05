@@ -17,6 +17,11 @@ $ go get github.com/jthomas/copyenv
 $ cf install-plugin $GOPATH/bin/copyenv
 ```
 
+or
+```
+$ make install-plugin
+```
+
 ## Usage
 
 ```
