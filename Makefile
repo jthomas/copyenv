@@ -46,7 +46,7 @@ ifeq ($(CUROS),windows)
 endif
 
 deps:
-	$(GOGET) ./...
+	$(GOGET) -t ./...
 
 
 
