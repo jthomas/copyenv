@@ -20,6 +20,8 @@ os = $(word 1, $(temp))
 arch = $(word 2, $(temp))
 ext = $(word 3, $(temp))
 
+all: deps test build release
+
 release: $(PLATFORMS)
 
 $(PLATFORMS):
@@ -44,6 +46,8 @@ ifeq ($(CUROS),windows)
 endif
 
 deps:
-	$(GOGET) ./...
+	$(GOGET) -t ./...
+
+
 
 .PHONY: deps clean test install-plugin $(PLATFORMS)

@@ -1,5 +1,7 @@
 # Cloud Foundry CLI Copy Env Plugin
 
+[![Build Status](https://travis-ci.org/vaughnh/copyenv.svg?branch=master)](https://travis-ci.org/vaughnh/copyenv)
+
 Cloud Foundry CLI plugin to export application VCAP_SERVICES and VCAP_APPLICATION onto the local machine.
 
 Applications running on Cloud Foundry rely on the VCAP_SERVICES environment variable to provide service credentials. Application specific configuration environment is provided in VCAP_APPLICATION.
@@ -13,6 +15,11 @@ This plugin will export the remote application environment variables, available 
 ```
 $ go get github.com/jthomas/copyenv
 $ cf install-plugin $GOPATH/bin/copyenv
+```
+
+or
+```
+$ make install-plugin
 ```
 
 ## Usage
