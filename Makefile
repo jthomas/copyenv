@@ -25,10 +25,9 @@ release: $(PLATFORMS)
 $(PLATFORMS):
 	GOOS=$(os) GOARCH=$(arch) go build -o bin/$(BINARY_NAME).'$(ext)'
 
-all: test build
-build:
+all: deps test release
 
-test: 
+test: deps
 	$(GOTEST) -v ./...
 clean:
 	$(GOCLEAN)
