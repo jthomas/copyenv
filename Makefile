@@ -9,7 +9,7 @@ SED=SED
 BUILD_FOLDER=bin
 BINARY_NAME=copyenv
 SHASUM=shasum
-CFINSTALL=cf
+CF=cf
 
 CURARCH=$(shell $(GOENV) | $(SED) -n 's@GOHOSTARCH="\([^"]*\).*@\1@p')
 CUROS=$(shell $(GOENV) |  $(SED) -n 's@GOHOSTOS="\([^"]*\).*@\1@p')
@@ -17,6 +17,8 @@ ARCHWIDTH=$(shell echo $(CURARCH) | $(SED) s'@.*\(..\)@\1@')
 
 # Parameters for the cross platform release binaries
 PLATFORMS := linux/amd64/linux64 linux/386/linux32 windows/amd64/win64 windows/386/win32 darwin/amd64/osx
+
+BINARIES = $(wildcard bin/copyenv.*)
 
 TEMP = $(subst /, ,$@)
 OS = $(word 1, $(TEMP))
@@ -26,7 +28,6 @@ EXT = $(word 3, $(TEMP))
 # DEFAULT
 all: deps test release
 
-# Build cross platform release binaries
 release: $(PLATFORMS)
 
 $(PLATFORMS):
@@ -50,6 +51,7 @@ ifeq ($(CUROS),windows)
 endif
 
 deps:
-	$(GOGET) ./...
+	$(GOGET) -t ./...
+
 
 .PHONY: deps clean test install-plugin $(PLATFORMS)
