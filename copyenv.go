@@ -55,10 +55,10 @@ func (c *CopyEnv) extractCredentialsJSON(envParent string, credKey string, outpu
 	err := errors.New("missing service credentials for application")
 	var b []byte
 
-	val := strings.Join(output, "")
-	if strings.Contains(val, credKey) {
+	envKey := strings.Join(output, "")
+	if strings.Contains(envKey, credKey) {
 		var f interface{}
-		err = json.Unmarshal([]byte(val), &f)
+		err = json.Unmarshal([]byte(envKey), &f)
 		if err != nil {
 			return nil, err
 		}
@@ -111,7 +111,7 @@ func (c *CopyEnv) GetMetadata() plugin.PluginMetadata {
 		Version: plugin.VersionType{
 			Major: 1,
 			Minor: 2,
-			Build: 1,
+			Build: 3,
 		},
 		Commands: []plugin.Command{
 			plugin.Command{
