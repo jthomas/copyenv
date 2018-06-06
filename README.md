@@ -16,7 +16,6 @@ This plugin will export the remote application environment variables, available 
 $ go get github.com/jthomas/copyenv
 $ cf install-plugin $GOPATH/bin/copyenv
 ```
-
 or
 ```
 $ make install-plugin
