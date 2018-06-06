@@ -5,49 +5,53 @@ GOCLEAN=$(GOCMD) clean
 GOTEST=$(GOCMD) test
 GOGET=$(GOCMD) get
 GOENV=$(GOCMD) env
-sed=sed
+SED=sed
 BUILD_FOLDER=bin
 BINARY_NAME=copyenv
+SHASUM=shasum
+CF=cf
 
-CURARCH=$(shell $(GOENV) | $(sed) -n 's@GOHOSTARCH="\([^"]*\).*@\1@p')
-CUROS=$(shell $(GOENV) |  $(sed) -n 's@GOHOSTOS="\([^"]*\).*@\1@p')
-ARCHWIDTH=$(shell echo $(CURARCH) | $(sed) s'@.*\(..\)@\1@')
+CURARCH=$(shell $(GOENV) | $(SED) -n 's@GOHOSTARCH="\([^"]*\).*@\1@p')
+CUROS=$(shell $(GOENV) |  $(SED) -n 's@GOHOSTOS="\([^"]*\).*@\1@p')
+ARCHWIDTH=$(shell echo $(CURARCH) | $(SED) s'@.*\(..\)@\1@')
 
+# Parameters for the cross platform release binaries
 PLATFORMS := linux/amd64/linux64 linux/386/linux32 windows/amd64/win64 windows/386/win32 darwin/amd64/osx
 
-temp = $(subst /, ,$@)
-os = $(word 1, $(temp))
-arch = $(word 2, $(temp))
-ext = $(word 3, $(temp))
+BINARIES = $(wildcard bin/copyenv.*)
 
-all: deps test build release
+TEMP = $(subst /, ,$@)
+OS = $(word 1, $(TEMP))
+ARCH = $(word 2, $(TEMP))
+EXT = $(word 3, $(TEMP))
+
+# DEFAULT
+all: deps test release
 
 release: $(PLATFORMS)
 
 $(PLATFORMS):
-	GOOS=$(os) GOARCH=$(arch) go build -o bin/$(BINARY_NAME).'$(ext)'
+	GOOS=$(OS) GOARCH=$(ARCH) go build -o bin/$(BINARY_NAME).'$(EXT)'
+	$(SHASUM) -a 1 bin/$(BINARY_NAME).'$(EXT)'
 
-build:
-
-test: 
+test: deps
 	$(GOTEST) -v ./...
 clean:
 	$(GOCLEAN)
 
 install-plugin: release
 ifeq ($(CUROS),darwin)
-	cf install-plugin -f bin/$(BINARY_NAME).osx
+	$(CF) install-plugin -f bin/$(BINARY_NAME).osx
 endif
 ifeq ($(CUROS),linux)
-	cf install-plugin -f bin/$(BINARY_NAME).linux$(ARCHWIDTH)
+	$(CF) install-plugin -f bin/$(BINARY_NAME).linux$(ARCHWIDTH)
 endif
 ifeq ($(CUROS),windows)
-	cf install-plugin -f bin/$(BINARY_NAME).win$(ARCHWIDTH)
+	$(CF) install-plugin -f bin/$(BINARY_NAME).win$(ARCHWIDTH)
 endif
 
 deps:
 	$(GOGET) -t ./...
-
 
 
 .PHONY: deps clean test install-plugin $(PLATFORMS)

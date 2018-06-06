@@ -53,25 +53,25 @@ func (c *CopyEnv) retrieveAppNameEnv(cliConnection plugin.CliConnection, appName
 
 func (c *CopyEnv) extractCredentialsJSON(envParent string, credKey string, output []string) ([]byte, error) {
 	err := errors.New("missing service credentials for application")
-	var b []byte
+	var envJson []byte
 
-	val := strings.Join(output, "")
-	if strings.Contains(val, credKey) {
+	envKey := strings.Join(output, "")
+	if strings.Contains(envKey, credKey) {
 		var f interface{}
-		err = json.Unmarshal([]byte(val), &f)
+		err = json.Unmarshal([]byte(envKey), &f)
 		if err != nil {
 			return nil, err
 		}
 
 		envJSON := f.(map[string]interface{})
 		envParentJSON := envJSON[envParent].(map[string]interface{})
-		b, err = json.Marshal(envParentJSON[credKey])
+		envJson, err = json.Marshal(envParentJSON[credKey])
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return b, err
+	return envJson, err
 }
 
 func (c *CopyEnv) exportCredsAsShellVar(credKey string, creds string) {
@@ -111,7 +111,7 @@ func (c *CopyEnv) GetMetadata() plugin.PluginMetadata {
 		Version: plugin.VersionType{
 			Major: 1,
 			Minor: 2,
-			Build: 1,
+			Build: 4,
 		},
 		Commands: []plugin.Command{
 			plugin.Command{
